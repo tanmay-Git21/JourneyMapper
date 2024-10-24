@@ -1,12 +1,14 @@
 package com.JourneyMapper.App.Models;
 
 import java.time.LocalDateTime;
-
+import java.util.HashSet;
+import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 
@@ -36,6 +38,9 @@ public class User {
 
     @Column(updatable = true, nullable = false)
     private LocalDateTime updatedAt; // Changed to camelCase
+
+    @OneToMany
+    private Set<Maps> maps = new HashSet<>();
 
     // No-arg constructor
     public User() {
@@ -86,6 +91,7 @@ public class User {
     }
 // This method needs to do email validation like 1 . having only lower cases  2. having @ and .com  3. avoid duplication
     public void setEmail(String email) {
+    	
         this.email = email;
         this.updatedAt = LocalDateTime.now(); 
     }

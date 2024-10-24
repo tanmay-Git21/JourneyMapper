@@ -15,6 +15,10 @@ import com.JourneyMapper.App.Models.User;
 import com.JourneyMapper.App.Repositories.UserRepository;
 import com.JourneyMapper.App.Services.PasswordService;
 
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 // This class has two methods 
 // registerUser - which registers the user 
 // loginUser - which helps to login user as per credentials
@@ -82,55 +86,49 @@ public class UserController {
 //		  "login_password": "123456"
 //		}
 	@PostMapping("/login")
-	public ResponseEntity<?> loginUser(@RequestBody @Validated LoginUser loginForm, BindingResult result) {
+	public ResponseEntity<?> loginUser(@RequestBody @Validated LoginUser loginForm, BindingResult result, HttpServletRequest request) {
+	    // Check if there are validation errors
+	    if (result.hasErrors()) {
+	        return new ResponseEntity<>(result.getFieldErrors(), HttpStatus.BAD_REQUEST);
+	    }
 
-		// Check if there are validation errors
-		if (result.hasErrors()) {
-			return new ResponseEntity<>(result.getFieldErrors(), HttpStatus.BAD_REQUEST);
-		}
-		// this was for debugging purpose
-//		try {
-//			String email = loginForm.getLogin_email();
-//			
-//			if(email == null) {
-//				email = "The mail is null";
-//			}
-//			return new ResponseEntity<>(loginForm, HttpStatus.OK);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return new ResponseEntity<>("User email is null", HttpStatus.NO_CONTENT);
-//		}
+	    try {
+	        // Trim and lower case the email for consistency
+	        String emailToCheck = loginForm.getLogin_email().trim().toLowerCase();
+	        User loggedUserEmail = dataMan.findByEmail(emailToCheck);
 
-		try {
-			// Trim and lower case the email for consistency
-			String emailToCheck = loginForm.getLogin_email().trim().toLowerCase();
-			User loggedUserEmail = dataMan.findByEmail(emailToCheck);
+	        // Debugging information
+	        System.out.println("Trying to log in with email: " + emailToCheck);
+	        System.out.println("Found user: " + loggedUserEmail);
 
-			// Debugging information
-			System.out.println("Trying to log in with email: " + emailToCheck);
-			System.out.println("Found user: " + loggedUserEmail);
+	        // Check if user is found
+	        if (loggedUserEmail == null) {
+	            return new ResponseEntity<>("No such user found", HttpStatus.NOT_FOUND);
+	        }
 
-			// Check if user is found
-			if (loggedUserEmail == null) {
-				return new ResponseEntity<>("No such user Found", HttpStatus.NOT_FOUND);
-			}
+	        String hashedUserPassword = loggedUserEmail.getPassword();
 
-			String hashedUserPassword = loggedUserEmail.getPassword();
+	        // Check if the passwords match
+	        boolean passCheck = passwordService.checkPassword(loginForm.getLogin_password(), hashedUserPassword);
 
-			// Check if the passwords match
-			boolean passCheck = passwordService.checkPassword(loginForm.getLogin_password(), hashedUserPassword);
+	        if (passCheck) {
+	            // Create a session
+	            HttpSession session = request.getSession(true); // true means to create a new session if it doesn't exist
+	            
+	            // Store the User object in the session
+	            session.setAttribute("loggedUser", loggedUserEmail);
+	            session.setAttribute("isLoggedIn", true);
 
-			if (passCheck) {
-				// Optionally return user details or a token
-				return new ResponseEntity<>("User Logged in", HttpStatus.OK);
-			} else {
-				return new ResponseEntity<>("Wrong Email or Password", HttpStatus.UNAUTHORIZED);
-			}
-		} catch (Exception e) {
-			// Log the exception
-			e.printStackTrace();
-			return new ResponseEntity<>("An error occurred during login", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	            return new ResponseEntity<>("User logged in successfully", HttpStatus.OK);
+	        } else {
+	            return new ResponseEntity<>("Wrong email or password", HttpStatus.UNAUTHORIZED);
+	        }
+	    } catch (Exception e) {
+	        // Log the exception
+	        e.printStackTrace();
+	        return new ResponseEntity<>("An error occurred during login", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
+
 
 }

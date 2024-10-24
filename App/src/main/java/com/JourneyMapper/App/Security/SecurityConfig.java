@@ -14,10 +14,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/register","/login").permitAll() // Allow unauthenticated access to /register
-                .anyRequest().authenticated() // All other requests need authentication
+                .anyRequest().permitAll() // Allow all requests without authentication
             )
-            .csrf().disable(); // Disable CSRF protection for non-browser clients
+            .csrf().disable(); // Disable CSRF protection if necessary for non-browser clients
 
         return http.build();
     }
