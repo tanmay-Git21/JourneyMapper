@@ -1,6 +1,6 @@
 package com.JourneyMapper.App.Controllers;
 
-import java.net.http.HttpRequest;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.JourneyMapper.App.Models.Maps;
 import com.JourneyMapper.App.Models.User;
 import com.JourneyMapper.App.Repositories.MapsRepository;
-import com.JourneyMapper.App.Repositories.UserRepository;
 
-import jakarta.security.auth.message.callback.PrivateKeyCallback.Request;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -191,7 +189,7 @@ public class MapsController {
 
 	@DeleteMapping("/deletemaps")
 	@Transactional
-	public ResponseEntity<?> deleteUserMaps(HttpServletRequest request) {
+	public ResponseEntity<?> deleteUserMaps(HttpServletRequest request, @RequestParam int mapId) {
 	    HttpSession session = request.getSession(false);
 
 	    // Check if the session exists and if the user is logged in
@@ -203,16 +201,17 @@ public class MapsController {
 	        // Retrieve User object from session
 	        User user = (User) session.getAttribute("loggedUser");
 
-	        // Delete all maps created by the logged-in user
-	        mapRepository.deleteByUser_UserId(user.getUserId());
+	        // Delete all checkpoints associated with the specified map
+	        mapRepository.deleteByUser_UserId(mapId);
 
 	        // Return a confirmation response
-	        return new ResponseEntity<>("All maps created by the user have been deleted successfully", HttpStatus.OK);
+	        return new ResponseEntity<>("All checkpoints associated with the map have been deleted successfully", HttpStatus.OK);
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        return new ResponseEntity<>("An error occurred while deleting the maps", HttpStatus.INTERNAL_SERVER_ERROR);
+	        return new ResponseEntity<>("An error occurred while deleting the checkpoints", HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
+
 
 
 }

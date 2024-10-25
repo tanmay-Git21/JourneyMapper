@@ -94,6 +94,7 @@ public class UserController {
 
 	    try {
 	        // Trim and lower case the email for consistency
+
 	        String emailToCheck = loginForm.getLogin_email().trim().toLowerCase();
 	        User loggedUserEmail = dataMan.findByEmail(emailToCheck);
 
